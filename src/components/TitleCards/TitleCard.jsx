@@ -1,51 +1,54 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import './TitleCards.css'
-import cards_data from '../../assets/cards/Cards_data'
 
-const TitleCards = ({title, category}) => {
-  const [apiData, setApiData] = useState([])
-  const cardsRef = useRef();
-  const options = {
+const options = {
   method: 'GET',
   headers: {
     accept: 'application/json',
-    Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyNjJjZjEzYTYzNGU3YmNjNDQwODNhNTNkZTA3NzNjNyIsIm5iZiI6MTc5MjIwNjcwNy45MjQsInN1YiI6IjZhZDJlNzczOTQxNDcyODI3ZDBkNzM4MyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Dj1l2D--78J7xa9U8FLSOMo9ikfas_NGnjjb6kJeuTA'
-  }
-};
+    Authorization: `Bearer ${import.meta.env.VITE_TMDB_TOKEN}`,
+  },
+}
 
-
-
-  const handleWheel = (event) => {
-    event.preventDefault()
-    cardsRef.current.scrollLeft += event.deltaY;
-  }
+const TitleCards = ({ title, category }) => {
+  const [apiData, setApiData] = useState([])
+  const cardsRef = useRef(null)
 
   useEffect(() => {
-    fetch(`https://api.themoviedb.org/3/movie/${category ? category : "now_playing"}?language=en-US&page=1`, options)
-  .then(res => res.json())
-  .then(res => setApiData(res.results))
-  .catch(err => console.error(err));
-    cardsRef.current.addEventListener('wheel', handleWheel);
+    const el = cardsRef.current
+    const handleWheel = (event) => {
+      event.preventDefault()
+      el.scrollLeft += event.deltaY
+    }
+    el.addEventListener('wheel', handleWheel)
+    return () => el.removeEventListener('wheel', handleWheel)
   }, [])
+
+  useEffect(() => {
+    fetch(
+      `https://api.themoviedb.org/3/movie/${category || 'now_playing'}?language=en-US&page=1`,
+      options
+    )
+      .then((res) => res.json())
+      .then((res) => setApiData(res.results || []))
+      .catch((err) => console.error(err))
+  }, [category])
 
   return (
     <div className="title-cards">
-
-      <h2>Popular on Netflix</h2>
-
+      <h2>{title || 'Popular on Netflix'}</h2>
       <div className="card-list" ref={cardsRef}>
-
-        {apiData.map((card, index) => (
-            <div className="card" key={index}>
-              <img src={'https://image.tmdb.org/t/p/w500' + card.backdrop_path} alt="" />
+        {apiData
+          .filter((card) => card.backdrop_path)
+          .map((card) => (
+            <div className="card" key={card.id}>
+              <img
+                src={`https://image.tmdb.org/t/p/w500${card.backdrop_path}`}
+                alt={card.original_title}
+              />
               <p>{card.original_title}</p>
             </div>
-          
-        
-        ))}
-
+          ))}
       </div>
-
     </div>
   )
 }
