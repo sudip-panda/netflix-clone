@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import './TitleCards.css'
 
 const options = {
@@ -40,13 +41,13 @@ const TitleCards = ({ title, category }) => {
         {apiData
           .filter((card) => card.backdrop_path)
           .map((card) => (
-            <div className="card" key={card.id}>
+            <Link to={`/player/${card.id}`} className="card" key={card.id}>
               <img
                 src={`https://image.tmdb.org/t/p/w500${card.backdrop_path}`}
                 alt={card.original_title}
               />
               <p>{card.original_title}</p>
-            </div>
+            </Link>
           ))}
       </div>
     </div>
